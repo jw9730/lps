@@ -2,8 +2,8 @@
 torch==2.0.1+cu118
 torchvision==0.15.2+cu118
 torchaudio==2.0.2+cu118
-torch-geometric==2.4.0
 --find-links https://data.pyg.org/whl/torch-2.0.0+cu118.html
+torch-geometric==2.4.0
 torch-scatter==2.1.2+pt20cu118
 torch-sparse==0.6.18+pt20cu118
 numpy==1.23.5
