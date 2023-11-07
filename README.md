@@ -14,7 +14,7 @@ Using Docker image (recommended)
 
 ```bash
 docker pull jw9730/lps:latest
-docker run -it --gpus=all --ipc=host --name=lps -v /home:/home jw9730/lps:latest bash
+docker run -it --gpus all --ipc host --name lps -v /home:/home jw9730/lps:latest bash
 # upon completion, you should be at /lps inside the container
 ```
 
@@ -24,7 +24,7 @@ Using ```Dockerfile```
 git clone https://github.com/jw9730/lps.git /lps
 cd lps
 docker build --no-cache --tag lps:latest .
-docker run -it --gpus all --ipc=host --name=lps -v /home:/home lps:latest bash
+docker run -it --gpus all --ipc host --name lps -v /home:/home lps:latest bash
 # upon completion, you should be at /lps inside the container
 ```
 
