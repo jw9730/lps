@@ -40,7 +40,7 @@ bash install.sh
 
 ## Running Experiments
 
-Graph isomorphism learning (Section 3.1 and Appendix 4.1)
+Graph isomorphism learning on GRAPH8c, EXP, and EXP-classify (Section 3.1 and Appendix 4.1)
 
 ```bash
 cd scripts
@@ -64,7 +64,7 @@ bash exp_classify_gin_id_canonical.sh
 bash exp_classify_gin_id_ps.sh
 ```
 
-Particle dynamics learning (Section 3.2 and Appendix 4.2)
+Particle dynamics learning on n-body (Section 3.2 and Appendix 4.2)
 
 ```bash
 cd scripts
@@ -78,7 +78,7 @@ bash nbody_gnn_ga.sh
 bash nbody_gnn_ps.sh
 ```
 
-Graph pattern recognition (Section 3.3)
+Graph pattern recognition on PATTERN (Section 3.3)
 
 ```bash
 cd scripts
@@ -94,7 +94,7 @@ bash pattern_vit_imagenet21k_canonical.sh
 bash pattern_vit_imagenet21k_ps.sh
 ```
 
-Real-world graph learning (Section 3.4)
+Real-world graph learning on Peptides-func, Peptides-struct, and PCQM-Contact (Section 3.4)
 
 ```bash
 cd scripts
@@ -109,7 +109,7 @@ bash peptides_struct_vit_imagenet21k_ps.sh
 bash pcqm_contact_vit_imagenet21k_ps.sh
 ```
 
-Supplementary analysis (Appendix 4.3 and 4.4)
+Supplementary analysis on EXP-classify and inner-symmetric graphs (Appendix 4.3 and 4.4)
 
 ```bash
 cd scripts
@@ -135,7 +135,7 @@ After downloading, you can run `cd scripts` and run each experiment script (*e.g
 | Peptides-func | peptides_func/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_func/\*/\*.ckpt |
 | Peptides-struct | peptides_struct/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_struct/\*/\*.ckpt |
 | PCQM-Contact | pcqm_contact/\*/\*.ckpt | experiments/checkpoints/lrgb_pcqm_contact/\*/\*.ckpt |
-| Supplementary analysis | exp_classify_analysis/\*/\*.ckpt | src_synthetic/graph_separation/experiments/checkpoints/\*/\*.ckpt |
+| Supp. analysis | exp_classify_analysis/\*/\*.ckpt | src_synthetic/graph_separation/experiments/checkpoints/\*/\*.ckpt |
 
 ## References
 
