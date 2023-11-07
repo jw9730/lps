@@ -128,14 +128,14 @@ Trained model checkpoints can be found at [this link](https://drive.google.com/d
 To run analysis or reproduce the test results, please download and place the checkpoints of interest following the below table.
 After downloading, you can run `cd scripts` and run each experiment script (*e.g.*, `bash nbody_transformer_ps.sh`) to reproduce the test results.
 
-| Experiments | Checkpoints | Download into |
-|---|---|---|
-| n-body | nbody/\*/\*.ckpt | src_synthetic/nbody/experiments/checkpoints/\*/\*.ckpt |
-| PATTERN | pattern/\*/\*.ckpt | experiments/checkpoints/gnn_benchmark_pattern/\*/\*.ckpt |
-| Peptides-func | peptides_func/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_func/\*/\*.ckpt |
-| Peptides-struct | peptides_struct/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_struct/\*/\*.ckpt |
-| PCQM-Contact | pcqm_contact/\*/\*.ckpt | experiments/checkpoints/lrgb_pcqm_contact/\*/\*.ckpt |
-| Supp. analysis | exp_classify_analysis/\*/\*.ckpt | src_synthetic/graph_separation/experiments/checkpoints/\*/\*.ckpt |
+| Experiments | Checkpoint Paths |
+|---|---|
+| n-body | src_synthetic/nbody/experiments/checkpoints/\*/\*.ckpt |
+| PATTERN |experiments/checkpoints/gnn_benchmark_pattern/\*/\*.ckpt |
+| Peptides-func | experiments/checkpoints/lrgb_peptides_func/\*/\*.ckpt |
+| Peptides-struct | experiments/checkpoints/lrgb_peptides_struct/\*/\*.ckpt |
+| PCQM-Contact | experiments/checkpoints/lrgb_pcqm_contact/\*/\*.ckpt |
+| Supplementary analysis | src_synthetic/graph_separation/experiments/checkpoints/\*/\*.ckpt |
 
 ## References
 
