@@ -124,7 +124,21 @@ bash automorphism_mlp.sh
 
 ## Trained Models
 
-All trained model checkpoints can be found at [this link](https://drive.google.com/drive/folders/12P95QRLERYSqh-v8vIGB-yCKNGDzj727?usp=sharing).
+Trained model checkpoints can be found at [this link](https://drive.google.com/drive/folders/12P95QRLERYSqh-v8vIGB-yCKNGDzj727?usp=sharing).
+To run analysis or reproduce the test results, please download and place the checkpoints of interest following the below table.
+After downloading, you can run `cd scripts` and run each experiment script (*e.g.*, `bash nbody_transformer_ps.sh`) to reproduce the test results.
+
+| Experiment | Checkpoints | Download into |
+|---|---|---|
+| Graph isomorphism (Section 3.1 and Appendix 4.1) | `-` | `-` |
+| Particle dynamics (Section 3.2 and Appendix 4.2) | `nbody/[ID]/*.ckpt` | `src_synthetic/nbody/experiments/checkpoints/[ID]/*.ckpt` |
+| Graph pattern recognition (Section 3.3) | `pattern/[ID]/*.ckpt` | `experiments/checkpoints/gnn_benchmark_pattern/[ID]/*.ckpt` |
+| Real-world graph learning (Section 3.4) | `peptides_func/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_func/[ID]/*.ckpt` |
+| Real-world graph learning (Section 3.4) | `peptides_struct/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_struct/[ID]/*.ckpt` |
+| Real-world graph learning (Section 3.4) | `pcqm_contact/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_pcqm_contact/[ID]/*.ckpt` |
+| Supplementary analysis (Appendix 4.3 and 4.4) | `exp_classify_analysis/[ID]/*.ckpt` | `src_synthetic/graph_separation/experiments/checkpoints/[ID]/*.ckpt` |
+
+`-`: running experiments according to previous section will produce the test results.
 
 ## References
 

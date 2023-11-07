@@ -119,7 +119,8 @@ def configure_experiment(args):
     exp_name = configure_experiment_name(args)
     log_dir = Path(args.log_dir) / exp_name
     if args.test:
-        assert log_dir.exists(), f'log_dir {log_dir} does not exist'
+        if not log_dir.exists():
+            print(f'log_dir {log_dir} does not exist')
         args.eval_sample_size = args.test_sample_size
     elif log_dir.exists():
         while True:
