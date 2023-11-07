@@ -1,4 +1,4 @@
-# LPS
+# Probabilistic Symmetrization (PyTorch)
 
 **Learning Probabilistic Symmetrization for Architecture Agnostic Equivariance** \
 [Jinwoo Kim](https://bit.ly/jinwoo-kim), [Tien Dat Nguyen](https://github.com/tiendatnguyen-vision), [Ayhan Suleymanzade](https://github.com/MisakiTaro0414), [Hyeokjun An](https://hyeokjun-an.github.io/hyeokjun-an/Hyeokjun-An.html), [Seunghoon Hong](https://maga33.github.io/) @ [KAIST](https://www.kaist.ac.kr/en/) \
