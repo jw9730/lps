@@ -139,7 +139,7 @@ def get_config() -> edict:
         config.test_ckpt_path = None
 
     # create team name for wandb logging
-    config.team_name = 'vl-kaist'
+    config.team_name = 'lps'
 
     # # this is a hack for debugging with visual studio code
     # config.debug_mode = True
