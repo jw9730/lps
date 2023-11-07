@@ -3,7 +3,7 @@ import torch
 from torch import nn, Tensor as T
 from torch.nn import functional as F
 
-from vnn.utils.vn_dgcnn_util import get_graph_feature
+from vnn.vn_dgcnn_util import get_graph_feature
 from vnn.vn_layers import VNLinearLeakyReLU, VNMaxPool, VNStdFeature, VNLinear
 from utils import batched_gram_schmidt_3d
 from transformer import Transformer
