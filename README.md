@@ -4,7 +4,7 @@
 [Jinwoo Kim](https://bit.ly/jinwoo-kim), [Tien Dat Nguyen](https://github.com/tiendatnguyen-vision), [Ayhan Suleymanzade](https://github.com/MisakiTaro0414), [Hyeokjun An](https://hyeokjun-an.github.io/hyeokjun-an/Hyeokjun-An.html), [Seunghoon Hong](https://maga33.github.io/) @ [KAIST](https://www.kaist.ac.kr/en/) \
 NeurIPS 2023 Spotlight Presentation
 
-[![arXiv](https://img.shields.io/badge/arXiv-2306.02866-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2306.02866)
+[![arXiv](https://img.shields.io/badge/arXiv-2306.02866-b31b1b.svg)](https://arxiv.org/abs/2306.02866)
 
 ![image-lps](./docs/lps.png)
 
