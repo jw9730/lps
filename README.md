@@ -135,7 +135,7 @@ After downloading, you can run `cd scripts` and run each experiment script (*e.g
 | Peptides-func | `peptides_func/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_func/[ID]/*.ckpt` |
 | Peptides-struct | `peptides_struct/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_struct/[ID]/*.ckpt` |
 | PCQM-Contact | `pcqm_contact/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_pcqm_contact/[ID]/*.ckpt` |
-| Supplementary analysis (Appendix 4.3 and 4.4) | `exp_classify_analysis/[ID]/*.ckpt` | `src_synthetic/graph_separation/experiments/checkpoints/[ID]/*.ckpt` |
+| Supplementary analysis | `exp_classify_analysis/[ID]/*.ckpt` | `src_synthetic/graph_separation/experiments/checkpoints/[ID]/*.ckpt` |
 
 ## References
 
