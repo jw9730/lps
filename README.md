@@ -130,12 +130,12 @@ After downloading, you can run `cd scripts` and run each experiment script (*e.g
 
 | Experiments | Checkpoints | Download into |
 |---|---|---|
-| n-body | `nbody/[ID]/*.ckpt` | `src_synthetic/nbody/experiments/checkpoints/[ID]/*.ckpt` |
-| PATTERN | `pattern/[ID]/*.ckpt` | `experiments/checkpoints/gnn_benchmark_pattern/[ID]/*.ckpt` |
-| Peptides-func | `peptides_func/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_func/[ID]/*.ckpt` |
-| Peptides-struct | `peptides_struct/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_peptides_struct/[ID]/*.ckpt` |
-| PCQM-Contact | `pcqm_contact/[ID]/*.ckpt` | `experiments/checkpoints/lrgb_pcqm_contact/[ID]/*.ckpt` |
-| Supplementary analysis | `exp_classify_analysis/[ID]/*.ckpt` | `src_synthetic/graph_separation/experiments/checkpoints/[ID]/*.ckpt` |
+| n-body | nbody/\*/\*.ckpt | src_synthetic/nbody/experiments/checkpoints/\*/\*.ckpt |
+| PATTERN | pattern/\*/\*.ckpt | experiments/checkpoints/gnn_benchmark_pattern/\*/\*.ckpt |
+| Peptides-func | peptides_func/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_func/\*/\*.ckpt |
+| Peptides-struct | peptides_struct/\*/\*.ckpt | experiments/checkpoints/lrgb_peptides_struct/\*/\*.ckpt |
+| PCQM-Contact | pcqm_contact/\*/\*.ckpt | experiments/checkpoints/lrgb_pcqm_contact/\*/\*.ckpt |
+| Supplementary analysis | exp_classify_analysis/\*/\*.ckpt | src_synthetic/graph_separation/experiments/checkpoints/\*/\*.ckpt |
 
 ## References
 
