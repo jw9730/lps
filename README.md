@@ -60,6 +60,7 @@ bash exp_gin_id_ps.sh
 # EXP-classify
 bash exp_classify_mlp_canonical.sh
 bash exp_classify_mlp_ps.sh
+bash exp_classify_mlp_ps_fixed_noise.sh
 bash exp_classify_gin_id_canonical.sh
 bash exp_classify_gin_id_ps.sh
 ```
