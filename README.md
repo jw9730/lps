@@ -125,8 +125,8 @@ bash automorphism_mlp.sh
 ## Trained Models
 
 Trained model checkpoints can be found at [this link](https://drive.google.com/drive/folders/12P95QRLERYSqh-v8vIGB-yCKNGDzj727?usp=sharing).
-To run analysis or reproduce the test results, please find and download the checkpoints of interest from the below table.
-After downloading, you can run each experiment script (*e.g.*, `bash nbody_transformer_ps.sh`) to reproduce the test results.
+To run analysis or reproduce the results, please find and download the checkpoints of interest from the below table.
+After downloading, you can run each experiment script (*e.g.*, `bash nbody_transformer_ps.sh`) to reproduce the results.
 
 | Experiment | Download Path |
 |---|---|
