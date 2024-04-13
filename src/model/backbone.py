@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access,too-many-arguments
 import torch
 from torch import nn
 from torch.utils.checkpoint import checkpoint
@@ -7,6 +7,7 @@ from transformers import BertModel, RobertaModel, AlbertModel, ElectraModel, XLM
 from transformers import ViTMAEModel, PerceiverModel, GraphormerModel
 import timm
 from timm.models import VisionTransformer, Beit, checkpoint_seq
+from timm.layers import PatchDropout
 
 from .checkpoints import HF_CHECKPOINTS, TIMM_CHECKPOINTS
 
@@ -27,13 +28,19 @@ def setup_backbone(backbone, pretrained=True):
 
 class Backbone(nn.Module):
     """Backbone transformer architecture (optionally pre-trained)"""
-    def __init__(self, backbone, pretrained=True):
+    def __init__(self, backbone, pretrained, patch_dropout, max_patch_dropout):
         super().__init__()
+        assert (patch_dropout is None) or (max_patch_dropout is None)
+        self.patch_drop_rate = patch_dropout
+        self.max_patch_drop_rate = max_patch_dropout
+        self.patch_drop = nn.Identity()
         self.backbone = setup_backbone(backbone, pretrained)
         if isinstance(self.backbone, TextTransformer):
             self.num_tokens = self.backbone.config.max_position_embeddings
             self.hidden_size = self.backbone.config.hidden_size
             self._forward = self._forward_text
+            if patch_dropout or max_patch_dropout:
+                raise NotImplementedError("PatchDropout not supported for TextTransformer!")
         elif isinstance(self.backbone, VisionTransformer):
             self.num_tokens = self.backbone.patch_embed.num_patches
             self.hidden_size = self.backbone.num_features
@@ -42,6 +49,8 @@ class Backbone(nn.Module):
             self.num_tokens = self.backbone.patch_embed.num_patches
             self.hidden_size = self.backbone.num_features
             self._forward = self._forward_beit
+            if patch_dropout or max_patch_dropout:
+                raise NotImplementedError("PatchDropout not supported for Beit!")
         elif isinstance(self.backbone, TODO):
             raise NotImplementedError(f"Backbone ({self.backbone}) not implemented (TODO)!")
         else:
@@ -56,6 +65,18 @@ class Backbone(nn.Module):
     def _forward_vision(self, x: torch.Tensor):
         # x = backbone.patch_embed(x)
         x = self.backbone._pos_embed(x)
+        if self.patch_drop_rate:
+            self.patch_drop = PatchDropout(
+                prob=self.patch_drop_rate,
+                num_prefix_tokens=self.backbone.num_prefix_tokens)
+        elif self.max_patch_drop_rate:
+            self.patch_drop = PatchDropout(
+                prob=torch.rand(1).item() * self.max_patch_drop_rate,
+                num_prefix_tokens=self.backbone.num_prefix_tokens)
+        else:
+            assert self.patch_drop_rate is None and self.max_patch_drop_rate is None
+            self.patch_drop = nn.Identity()
+        x = self.patch_drop(x)
         x = self.backbone.norm_pre(x)
         if self.backbone.grad_checkpointing and not torch.jit.is_scripting():
             x = checkpoint_seq(self.backbone.blocks, x)

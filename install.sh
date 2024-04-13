@@ -7,6 +7,5 @@ pip3 install easydict==1.10 fastapi==0.100.1 wandb==0.15.8 plum-dispatch==2.1.1 
 pip3 install datasets==2.14.3
 pip3 install torch_geometric==2.4.0
 pip3 install torch_scatter==2.1.2+pt20cu118 torch_sparse==0.6.18+pt20cu118 -f https://data.pyg.org/whl/torch-2.0.0+cu118.html
-pip3 install pytorch3d==0.3.0
 pip3 install tensorboard==2.13.0
 pip3 install -r requirements.txt

@@ -1,12 +1,19 @@
 # Probabilistic Symmetrization (PyTorch)
 
 **Learning Probabilistic Symmetrization for Architecture Agnostic Equivariance** \
-[Jinwoo Kim](https://bit.ly/jinwoo-kim), [Tien Dat Nguyen](https://github.com/tiendatnguyen-vision), [Ayhan Suleymanzade](https://github.com/MisakiTaro0414), [Hyeokjun An](https://hyeokjun-an.github.io/hyeokjun-an/Hyeokjun-An.html), [Seunghoon Hong](https://maga33.github.io/) @ [KAIST](https://www.kaist.ac.kr/en/) \
+[Jinwoo Kim](https://jw9730.github.io), [Tien Dat Nguyen](https://github.com/tiendatnguyen-vision), [Ayhan Suleymanzade](https://github.com/MisakiTaro0414), [Hyeokjun An](https://hyeokjun-an.github.io/hyeokjun-an/Hyeokjun-An.html), [Seunghoon Hong](https://maga33.github.io) @ [KAIST](https://www.kaist.ac.kr/en) \
 NeurIPS 2023 (Spotlight Presentation)
 
 [![arXiv](https://img.shields.io/badge/arXiv-2306.02866-b31b1b.svg)](https://arxiv.org/abs/2306.02866)
 
 ![image-lps](./docs/lps.png)
+
+## Updates
+
+Apr 14, 2024
+
+- Fixed evaluation bug for PATTERN and Peptides-func.
+- Updated configurations and checkpoints for Peptides-func and Peptides-struct.
 
 ## Setup
 
@@ -31,8 +38,6 @@ docker run -it --gpus all --ipc host --name lps -v /home:/home lps:latest bash
 Using ```pip```
 
 ```bash
-sudo apt update
-sudo apt install python3.8
 git clone https://github.com/jw9730/lps.git lps
 cd lps
 bash install.sh

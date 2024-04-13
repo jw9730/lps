@@ -11,12 +11,16 @@ def configure_model(config, symmetry, verbose=True):
     # setup model
     backbone = Backbone(
         backbone=config.backbone,
-        pretrained=config.pretrained
+        pretrained=getattr(config, 'pretrained', True),
+        patch_dropout=getattr(config, 'patch_dropout', None),
+        max_patch_dropout=getattr(config, 'max_patch_dropout', None),
     )
     model = InterfacedModel(
         backbone=backbone,
         symmetry=symmetry,
-        interface=config.interface
+        interface=config.interface,
+        centering=getattr(config, 'centering', False),
+        pad_mode=getattr(config, 'pad_mode', 'zero'),
     )
     # setup optimizer and lr scheduler
     optimizer_config = OptimizerConfig(

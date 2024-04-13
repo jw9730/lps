@@ -1,17 +1,17 @@
 cd .. || exit
 
 python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10 --test_seed 1
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10 --test_seed 2
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10 --test_seed 3
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10 --test_seed 4
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 10 --test_seed 5
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1 --test_seed 1
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1 --test_seed 2
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1 --test_seed 3
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1 --test_seed 4
-python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_sample_size 1 --test_seed 5
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10 --test_seed 1
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10 --test_seed 2
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10 --test_seed 3
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10 --test_seed 4
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 10 --test_seed 5
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1 --test_seed 1
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1 --test_seed 2
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1 --test_seed 3
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1 --test_seed 4
+python3 main.py --config configs/node_classification_pattern/vit_scratch_ga.yaml --test_mode --test_batch_size 128 --test_sample_size 1 --test_seed 5
 
 cd scripts || exit

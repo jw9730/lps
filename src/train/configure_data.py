@@ -23,7 +23,7 @@ def configure_data(config, verbose=True):
     global_batch_size = config.global_batch_size
     devices = torch.cuda.device_count() if config.accelerator == 'gpu' else 1
     if config.test_mode:
-        global_batch_size = config.global_batch_size // devices
+        global_batch_size = getattr(config, 'test_batch_size', config.global_batch_size // devices)
         devices = 1
     datamodule = setup_datamodule(
         ds_builder=ds_builder,

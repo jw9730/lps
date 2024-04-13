@@ -1,4 +1,4 @@
-# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments
+# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments,not-callable
 from typing import Tuple, Dict
 from functools import partial
 import torch
@@ -114,16 +114,16 @@ class GraphRegressionPeptidesstruct(Symmetry):
         """
         return nn.L1Loss()(y_hat, y)
 
-    def evaluator(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def evaluator(self, y_hat: list, y: list) -> dict:
         """Implementation from LRGB:
         https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/logger.py
         """
-        mae_val = mean_absolute_error(y_hat, y)
+        y_hat, y = torch.cat(y_hat, dim=0), torch.cat(y, dim=0)
+        batch_size = y.size(0)
+        mae_val = mean_absolute_error(y, y_hat)
         # caution: torchmetric and sklearn r2_score give different values
         # official LRGB implementation uses sklearn
-        r2_score_val = r2_score(y.cpu().detach().numpy(), y_hat.cpu().detach().numpy(),
-                                multioutput='uniform_average')
-        batch_size = y.size(0)
+        r2_score_val = r2_score(y.cpu().detach().numpy(), y_hat.cpu().detach().numpy(), multioutput='uniform_average')
         return {
             'mae': {
                 'metric_sum': mae_val * batch_size,

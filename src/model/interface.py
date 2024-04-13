@@ -11,7 +11,7 @@ DIST = {'unif': Uniform, 'frame': Frame, 'prob': Probabilistic}
 
 
 class InterfacedModel(nn.Module):
-    def __init__(self, backbone: Backbone, symmetry: Symmetry, interface: str):
+    def __init__(self, backbone: Backbone, symmetry: Symmetry, interface: str, centering: bool, pad_mode: str):
         super().__init__()
         # setup backbone
         self.backbone = backbone
@@ -23,10 +23,11 @@ class InterfacedModel(nn.Module):
         # setup equivariant distribution p(g|x)
         self.distribution = DIST[interface](self.symmetry)
         # setup input and output projections
+        assert pad_mode in ['zero', 'reflect', 'replicate', 'circular']
         num_tokens = self.backbone.num_tokens
         hidden_size = self.backbone.hidden_size
-        self.input_proj = ConvInputProj(symmetry, num_tokens, hidden_size)
-        self.output_proj = ConvOutputProj(symmetry, num_tokens, hidden_size)
+        self.input_proj = ConvInputProj(symmetry, num_tokens, hidden_size, centering, pad_mode)
+        self.output_proj = ConvOutputProj(symmetry, num_tokens, hidden_size, centering, pad_mode)
 
     def pretrained_parameters(self):
         return self.backbone.parameters()

@@ -1,4 +1,4 @@
-# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments
+# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments,not-callable
 from typing import Tuple, Dict
 from functools import partial
 import warnings
@@ -111,17 +111,18 @@ class GraphClassificationPeptidesfunc(Symmetry):
         is_labeled = torch.eq(y, y)
         return torch.nn.functional.binary_cross_entropy_with_logits(y_hat[is_labeled], y[is_labeled].to(y_hat.dtype))
 
-    def evaluator(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def evaluator(self, y_hat: list, y: list) -> dict:
         """Implementation from LRGB:
         https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/metric_wrapper.py
         https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/logger.py
         https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/metrics_ogb.py
         """
-        preds, target = y_hat, y
+        preds, target = torch.cat(y_hat, dim=0), torch.cat(y, dim=0)
         # torchmetrics expects probability preds and long targets
         preds = torch.sigmoid(preds)
         target = target.long()
         # compute metrics
+        determinism = torch.are_deterministic_algorithms_enabled()
         torch.use_deterministic_algorithms(False)
         if torch.isnan(target).any():
             warnings.warn("NaNs in targets, falling back to slow evaluation.")
@@ -147,9 +148,8 @@ class GraphClassificationPeptidesfunc(Symmetry):
             # below is tested to be equivalent with OGB metric
             # https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/metrics_ogb.py
             metric_val = multilabel_average_precision(preds, target, num_labels=self.rep_out[0])
-        torch.use_deterministic_algorithms(True)
-        batch_size = y.size(0)
+        torch.use_deterministic_algorithms(determinism)
         return {
-            'metric_sum': metric_val * batch_size,
-            'metric_count': batch_size,
+            'metric_sum': metric_val,
+            'metric_count': 1,
         }

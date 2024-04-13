@@ -7,15 +7,17 @@ accelerator: gpu
 # data arguments
 dataset: lrgb/peptides_struct
 num_workers: 16
-global_batch_size: 64
-accumulate_grad_batches: 2
+global_batch_size: 128
 
 # model arguments
 backbone: hf_hub:timm/vit_base_patch16_224.augreg_in21k
 pretrained: True
 interface: prob
-sample_size: 10
+sample_size: 1
 eval_sample_size: 10
+centering: True
+pad_mode: circular
+max_patch_dropout: 0.5
 
 # training arguments
 n_steps: 50000
@@ -26,9 +28,9 @@ lr_schedule: linear
 lr_warmup: 5000
 lr_warmup_scale: 0.
 schedule_from: 0
-weight_decay: 0.01
+weight_decay: 0.1
 lr_decay_degree: 0.9
-early_stopping_monitor: validation/loss_main_epoch
+early_stopping_monitor: validation/mae_epoch
 early_stopping_mode: min
 early_stopping_patience: 100
 

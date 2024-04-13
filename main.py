@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long,no-member,protected-access
+# pylint: disable=line-too-long,no-member,protected-access,used-before-assignment
 import os
 import sys
 import logging
@@ -48,10 +48,12 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument('--num_workers', '-nw', type=int, default=None)
     parser.add_argument('--global_batch_size', '-gbs', type=int, default=None)
     parser.add_argument('--accumulate_grad_batches', '-agb', type=int, default=None)
+    parser.add_argument('--test_batch_size', '-tbs', type=int, default=None)
 
     # model arguments
     parser.add_argument('--backbone', '-bb', type=str, default=None)
     parser.add_argument('--pretrained', '-pre', type=str2bool, default=None)
+    parser.add_argument('--centering', '-cen', type=str2bool, default=None)
 
     # symmetry arguments
     parser.add_argument('--interface', '-io', type=str, default=None, choices=['unif', 'frame', 'prob'])
@@ -106,7 +108,11 @@ def get_config() -> edict:
         postfix = config.name_postfix if hasattr(config, 'name_postfix') else ''
         config.exp_name = f"pt_{config.pretrained}," \
             + f"k_{config.sample_size}," \
-            + (f'eval_k_{config.eval_sample_size},' if config.sample_size != config.eval_sample_size else '')
+            + (f"eval_k_{config.eval_sample_size}," if config.sample_size != config.eval_sample_size else '') \
+            + (f"cen_{config.centering}," if (hasattr(config, 'centering') and config.centering) else '') \
+            + (f"pad_{config.pad_mode}," if hasattr(config, 'pad_mode') else '') \
+            + (f"patch_drop_{config.patch_dropout}," if hasattr(config, 'patch_dropout') else '') \
+            + (f"patch_drop<{config.max_patch_dropout}," if hasattr(config, 'max_patch_dropout') else '')
         if config.interface == 'unif':
             config.exp_name += 'ga,'
         elif config.interface == 'frame':
@@ -115,9 +121,9 @@ def get_config() -> edict:
             config.exp_name += f"z_{config.noise_scale}," \
                 + f"tau_{config.tau}," \
                 + ('hard,' if config.hard else '') \
-                + (f'l_{config.interface_num_layers},' if hasattr(config, 'interface_num_layers') else '') \
-                + (f'd_{config.interface_hidden_dim},' if hasattr(config, 'interface_hidden_dim') else '') \
-                + (f'drop_{config.interface_dropout},' if hasattr(config, 'interface_dropout') else '')
+                + (f"l_{config.interface_num_layers}," if hasattr(config, 'interface_num_layers') else '') \
+                + (f"d_{config.interface_hidden_dim}," if hasattr(config, 'interface_hidden_dim') else '') \
+                + (f"drop_{config.interface_dropout}," if hasattr(config, 'interface_dropout') else '')
         else:
             raise NotImplementedError
         config.exp_name += f"b_{config.global_batch_size}{(f'x{config.accumulate_grad_batches}' if hasattr(config, 'accumulate_grad_batches') else '')}," \
@@ -126,7 +132,7 @@ def get_config() -> edict:
             + f"steps_{config.n_steps}," \
             + f"wu_{config.lr_warmup}," \
             + f"wd_{config.weight_decay}," \
-            + (f'clip_{config.gradient_clip_val},' if hasattr(config, 'gradient_clip_val') else '') \
+            + (f"clip_{config.gradient_clip_val}," if hasattr(config, 'gradient_clip_val') else '') \
             + f"seed_{config.seed},"
         config.exp_name += postfix
 
@@ -223,7 +229,7 @@ def main(config):
         log_every_n_steps=-1,
         num_sanity_val_steps=0,
         callbacks=callbacks,
-        deterministic=True,
+        deterministic=not (hasattr(config, 'pad_mode') and (config.pad_mode != 'reflect')),
         devices=torch.cuda.device_count() if config.accelerator == 'gpu' else 1,
         strategy=strategy,
         precision=precision,

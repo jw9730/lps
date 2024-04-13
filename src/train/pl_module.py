@@ -102,41 +102,34 @@ class LitModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = self.parse_batch(batch)
         y_hat, loss_dict = self.inference(x, n_samples=self.eval_sample_size)
-        val_loss_total = 0
 
+        val_output = (y_hat, y)
+
+        val_loss_total = 0
         val_loss_main = self.criterion(y_hat, y)
         val_loss_total = val_loss_total + (val_loss_main if torch.isfinite(val_loss_main) else 0)
-
-        val_perf = self.evaluator(y_hat, y)
 
         for loss_name in loss_dict.keys():
             val_loss_total = val_loss_total + loss_dict[loss_name]['weight'] * loss_dict[loss_name]['value']
 
-        self.validation_step_outputs.append((val_loss_main.detach(), val_perf, loss_dict))
+        self.validation_step_outputs.append((val_loss_main.detach(), val_output, loss_dict))
         return val_loss_total
 
-    def epoch_perf(self, perfs):
-        sums = [perf['metric_sum'] for perf in perfs]
-        counts = [perf['metric_count'] for perf in perfs]
-        if isinstance(sums[0], torch.Tensor) and sums[0].dim() > 0:
-            sums = torch.stack(sums, dim=0).sum(0)
-            counts = torch.stack(counts, dim=0).sum(0).clamp(min=1e-5)
-            return (sums / counts).mean()
-        return sum(sums) / sum(counts)
-
     def on_validation_epoch_end(self):
-        losses_main, perfs, loss_dicts = zip(*self.validation_step_outputs)
+        losses_main, outputs, loss_dicts = zip(*self.validation_step_outputs)
 
         epoch_loss_main = torch.stack([l for l in losses_main if l == l]).mean()
         self.log('validation/loss_main_epoch', epoch_loss_main, on_epoch=True, logger=True, sync_dist=True)
 
+        perfs = self.evaluator(*zip(*outputs))
+
         if isinstance(self.metric_name, str):
-            epoch_perf = self.epoch_perf(perfs)
+            epoch_perf = perfs['metric_sum'] / perfs['metric_count']
             self.log(f'validation/{self.metric_name}_epoch', epoch_perf, on_epoch=True, logger=True, sync_dist=True)
         else:
             assert isinstance(self.metric_name, list)
             for metric_name in self.metric_name:
-                epoch_perf = self.epoch_perf([perf[metric_name] for perf in perfs])
+                epoch_perf = perfs[metric_name]['metric_sum'] / perfs[metric_name]['metric_count']
                 self.log(f'validation/{metric_name}_epoch', epoch_perf, on_epoch=True, logger=True, sync_dist=True)
 
         for loss_name in loss_dicts[0].keys():
@@ -149,32 +142,34 @@ class LitModule(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = self.parse_batch(batch)
         y_hat, loss_dict = self.inference(x, n_samples=self.eval_sample_size)
-        test_loss_total = 0
 
+        test_output = (y_hat, y)
+
+        test_loss_total = 0
         test_loss_main = self.criterion(y_hat, y)
         test_loss_total = test_loss_total + (test_loss_main if torch.isfinite(test_loss_main) else 0)
-
-        test_perf = self.evaluator(y_hat, y)
 
         for loss_name in loss_dict.keys():
             test_loss_total = test_loss_total + loss_dict[loss_name]['weight'] * loss_dict[loss_name]['value']
 
-        self.test_step_outputs.append((test_loss_main.detach(), test_perf, loss_dict))
+        self.test_step_outputs.append((test_loss_main.detach(), test_output, loss_dict))
         return test_loss_total
 
     def on_test_epoch_end(self):
-        losses_main, perfs, loss_dicts = zip(*self.test_step_outputs)
+        losses_main, outputs, loss_dicts = zip(*self.test_step_outputs)
 
         epoch_loss_main = torch.stack([l for l in losses_main if l == l]).mean()
         self.log('test/loss_main_epoch', epoch_loss_main, on_epoch=True, logger=True, sync_dist=True)
 
+        perfs = self.evaluator(*zip(*outputs))
+
         if isinstance(self.metric_name, str):
-            epoch_perf = self.epoch_perf(perfs)
+            epoch_perf = perfs['metric_sum'] / perfs['metric_count']
             self.log(f'test/{self.metric_name}_epoch', epoch_perf, on_epoch=True, logger=True, sync_dist=True)
         else:
             assert isinstance(self.metric_name, list)
             for metric_name in self.metric_name:
-                epoch_perf = self.epoch_perf([perf[metric_name] for perf in perfs])
+                epoch_perf = perfs[metric_name]['metric_sum'] / perfs[metric_name]['metric_count']
                 self.log(f'test/{metric_name}_epoch', epoch_perf, on_epoch=True, logger=True, sync_dist=True)
 
         for loss_name in loss_dicts[0].keys():
@@ -182,7 +177,3 @@ class LitModule(pl.LightningModule):
             self.log(f'test/loss_{loss_name}_epoch', loss_epoch_mean, on_epoch=True, logger=True, sync_dist=True)
 
         self.test_step_outputs.clear()
-
-    @pl.utilities.rank_zero_only
-    def vis_images(self, batch):
-        pass

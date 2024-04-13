@@ -1,6 +1,7 @@
-# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments
+# pylint: disable=protected-access,too-many-locals,unused-argument,line-too-long,too-many-instance-attributes,too-many-arguments,not-callable
 from typing import Tuple, Dict
 from functools import partial
+import numpy as np
 import torch
 from torch import nn
 from torch.nn.functional import one_hot
@@ -25,7 +26,7 @@ class LinkPredictionPCQMContact(Symmetry):
         self.rep_dim = 53
         self.rep_in = {1: sum(NODE_NUM_CLASSES), 2: 1 + sum(EDGE_NUM_CLASSES)}
         self.rep_out = {2: 1}
-        self.metric_name = ['hits@1', 'hits@3', 'hits@10', 'mrr']
+        self.metric_name = ['hits@1', 'hits@3', 'hits@10', 'mrr', 'mrr_filtered', 'mrr_filtered_noself']
         if config.interface == 'prob':
             self.entropy_loss_scale = config.entropy_loss_scale
             self.interface = partial(
@@ -121,7 +122,7 @@ class LinkPredictionPCQMContact(Symmetry):
         return nn.BCEWithLogitsLoss()(y_hat, y)
 
     @torch.no_grad()
-    def _eval_mrr(self, y_pred_pos, y_pred_neg):
+    def _eval_mrr(self, y_pred_pos, y_pred_neg, suffix='') -> dict:
         """ Compute Hits@k and Mean Reciprocal Rank (MRR).
         Implementation from OGB:
         https://github.com/snap-stanford/ogb/blob/master/ogb/linkproppred/evaluate.py
@@ -129,54 +130,77 @@ class LinkPredictionPCQMContact(Symmetry):
             y_pred_neg: array with shape (batch size, num_entities_neg).
             y_pred_pos: array with shape (batch size, )
         """
+        assert y_pred_pos.ndim == 1 and y_pred_neg.ndim == 2
+        assert y_pred_pos.shape[0] == y_pred_neg.shape[0]
         y_pred = torch.cat([y_pred_pos.view(-1, 1), y_pred_neg], dim=1)
         argsort = torch.argsort(y_pred, dim=1, descending=True)
-        rankings = torch.nonzero(argsort == 0, as_tuple=False)
-        rankings = rankings[:, 1] + 1
-        hits1 = (rankings <= 1).to(torch.float)
-        hits3 = (rankings <= 3).to(torch.float)
-        hits10 = (rankings <= 10).to(torch.float)
-        mrr = 1. / rankings.to(torch.float)
-        return {'hits@1': hits1, 'hits@3': hits3, 'hits@10': hits10, 'mrr': mrr}
+        ranking_list = torch.nonzero(argsort == 0, as_tuple=False)
+        ranking_list = ranking_list[:, 1] + 1
+        hits1_list = (ranking_list <= 1).to(torch.float)
+        hits3_list = (ranking_list <= 3).to(torch.float)
+        hits10_list = (ranking_list <= 10).to(torch.float)
+        mrr_list = 1. / ranking_list.to(torch.float)
+        return {
+            f'hits@1{suffix}': hits1_list,
+            f'hits@3{suffix}': hits3_list,
+            f'hits@10{suffix}': hits10_list,
+            f'mrr{suffix}': mrr_list
+        }
 
     @torch.no_grad()
-    def _eval(self, pred, data):
+    def _eval(self, pred, data) -> dict:
         pred = pred[:data.num_nodes, :data.num_nodes]
         pos_edge_index = data.edge_label_index[:, data.edge_label == 1]
         num_pos_edges = pos_edge_index.shape[1]
         pred_pos = pred[pos_edge_index[0], pos_edge_index[1]]
         if num_pos_edges > 0:
+            # raw MRR
             neg_mask = torch.ones([num_pos_edges, data.num_nodes], dtype=torch.bool)
             neg_mask[torch.arange(num_pos_edges), pos_edge_index[1]] = False
             pred_neg = pred[pos_edge_index[0]][neg_mask].view(num_pos_edges, -1)
-            metrics = self._eval_mrr(pred_pos, pred_neg)
+            mrr_list = self._eval_mrr(pred_pos, pred_neg, suffix='')
+
+            # filtered MRR
+            pred_masked = pred.clone()
+            pred_masked[pos_edge_index[0], pos_edge_index[1]] -= float("inf")
+            pred_neg = pred_masked[pos_edge_index[0]]
+            mrr_list.update(self._eval_mrr(pred_pos, pred_neg, suffix='_filtered'))
+
+            # extended filter without self-loops
+            pred_masked.fill_diagonal_(-float("inf"))
+            pred_neg = pred_masked[pos_edge_index[0]]
+            mrr_list.update(self._eval_mrr(pred_pos, pred_neg, suffix='_filtered_noself'))
         else:
-            metrics = self._eval_mrr(pred_pos, pred_pos)
-        return metrics
+            mrr_list = self._eval_mrr(pred_pos, pred_pos)
+        return mrr_list
 
     @torch.no_grad()
-    def evaluator(self, y_hat: torch.Tensor, y: Data) -> torch.Tensor:
+    def evaluator(self, y_hat: list, y: list) -> dict:
         """ Compute Hits@k and Mean Reciprocal Rank (MRR).
         Implementation from LRGB:
         https://github.com/vijaydwivedi75/lrgb/blob/main/graphgps/head/inductive_edge.py
         """
-        batch = y
-        batch_metrics = {
-            'hits@1': [],
-            'hits@3': [],
-            'hits@10': [],
-            'mrr': []
-        }
-        for pred, data in zip(y_hat, batch.to_data_list()):
-            metrics = self._eval(pred, data)
-            for k, v in metrics.items():
-                v = v.mean()
-                if v.isnan().item():
-                    v = 0.
-                batch_metrics[k].append(v)
-        for k, v in batch_metrics.items():
-            batch_metrics[k] = {
-                'metric_sum': sum(v),
-                'metric_count': len(v)
+        y_hat = torch.cat(y_hat, dim=0)
+        data_list = []
+        for batch in y:
+            data_list.extend(batch.to_data_list())
+
+        stats = {}
+        for pred, data in zip(y_hat, data_list):
+            mrr_list = self._eval(pred, data)
+            for key, val in mrr_list.items():
+                val = float(val.mean().item())
+                if np.isnan(val):
+                    val = 0.
+                if key not in stats:
+                    stats[key] = [val]
+                else:
+                    stats[key].append(val)
+
+        batch_stats = {}
+        for key, val in stats.items():
+            batch_stats[key] = {
+                'metric_sum': sum(val),
+                'metric_count': len(val)
             }
-        return batch_metrics
+        return batch_stats

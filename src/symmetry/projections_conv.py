@@ -1,6 +1,5 @@
-# pylint: disable=too-many-arguments,unused-variable,too-many-instance-attributes,line-too-long,unused-argument
+# pylint: disable=too-many-arguments,unused-variable,too-many-instance-attributes,line-too-long,unused-argument,not-callable
 from typing import Optional, Callable, Tuple
-import warnings
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -10,29 +9,35 @@ from .projections import InputProj, OutputProj
 
 
 class ConvInputProj(InputProj):
-    def __init__(self, symmetry: Symmetry, num_tokens: int, embed_dim: int, bias: bool=True):
+    def __init__(self, symmetry: Symmetry, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, bias: bool=True):
         super().__init__(symmetry)
         proj_keys = []
         proj = []
         if 0 in symmetry.rep_in and 0 not in symmetry.ignore_rep_in:
             proj_keys.append(0)
-            proj.append(Order0ConvInputProj(in_chans=symmetry.rep_in[0], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order0ConvInputProj(in_chans=symmetry.rep_in[0], num_tokens=num_tokens, embed_dim=embed_dim,
+                                            centering=centering, pad_mode=pad_mode, bias=bias))
         if 1 in symmetry.rep_in and 1 not in symmetry.ignore_rep_in:
             proj_keys.append(1)
-            proj.append(Order1ConvInputProj(seq_size=symmetry.rep_dim, in_chans=symmetry.rep_in[1], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order1ConvInputProj(seq_size=symmetry.rep_dim, in_chans=symmetry.rep_in[1], num_tokens=num_tokens, embed_dim=embed_dim,
+                                            centering=centering, pad_mode=pad_mode, bias=bias))
         if 2 in symmetry.rep_in and 2 not in symmetry.ignore_rep_in:
             proj_keys.append(2)
-            proj.append(Order2ConvInputProj(img_size=symmetry.rep_dim, in_chans=symmetry.rep_in[2], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order2ConvInputProj(img_size=symmetry.rep_dim, in_chans=symmetry.rep_in[2], num_tokens=num_tokens, embed_dim=embed_dim,
+                                            centering=centering, pad_mode=pad_mode, bias=bias))
         if (0, 0) in symmetry.rep_in and (0, 0) not in symmetry.ignore_rep_in:
             proj_keys.append((0, 0))
-            proj.append(Order0ConvInputProj(in_chans=symmetry.rep_in[(0, 0)], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order0ConvInputProj(in_chans=symmetry.rep_in[(0, 0)], num_tokens=num_tokens, embed_dim=embed_dim,
+                                            centering=centering, pad_mode=pad_mode, bias=bias))
         if (1, 1) in symmetry.rep_in and (1, 1) not in symmetry.ignore_rep_in:
             proj_keys.append((1, 1))
             if symmetry.rep_dim[1] == 3:
                 print(f"Point cloud inputs detected, using Order1ConvInputProj({symmetry.rep_dim[0]},) instead of Order1x1ConvInputProj({symmetry.rep_dim})")
-                proj.append(Order1ConvInputProj(seq_size=symmetry.rep_dim[0], in_chans=symmetry.rep_dim[1] * symmetry.rep_in[(1, 1)], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+                proj.append(Order1ConvInputProj(seq_size=symmetry.rep_dim[0], in_chans=symmetry.rep_dim[1] * symmetry.rep_in[(1, 1)], num_tokens=num_tokens, embed_dim=embed_dim,
+                                                centering=centering, pad_mode=pad_mode, bias=bias))
             else:
-                proj.append(Order1x1ConvInputProj(img_size=symmetry.rep_dim, in_chans=symmetry.rep_in[(1, 1)], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+                proj.append(Order1x1ConvInputProj(img_size=symmetry.rep_dim, in_chans=symmetry.rep_in[(1, 1)], num_tokens=num_tokens, embed_dim=embed_dim,
+                                                  centering=centering, pad_mode=pad_mode, bias=bias))
         for k in symmetry.rep_in:
             assert k in proj_keys and k not in symmetry.ignore_rep_in, f"Missing projection for {k}-order representation"
         self.proj_keys = proj_keys
@@ -40,7 +45,7 @@ class ConvInputProj(InputProj):
 
 
 class ConvOutputProj(OutputProj):
-    def __init__(self, symmetry: Symmetry, num_tokens: int, embed_dim: int, bias: bool=True):
+    def __init__(self, symmetry: Symmetry, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, bias: bool=True):
         super().__init__(symmetry)
         proj_keys = []
         proj = []
@@ -49,16 +54,19 @@ class ConvOutputProj(OutputProj):
             proj.append(nn.Linear(embed_dim, symmetry.rep_out[0], bias=bias))
         if 1 in symmetry.rep_out and 1 not in symmetry.ignore_rep_out:
             proj_keys.append(1)
-            proj.append(Order1ConvOutputProj(seq_size=symmetry.rep_dim, out_chans=symmetry.rep_out[1], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order1ConvOutputProj(seq_size=symmetry.rep_dim, out_chans=symmetry.rep_out[1], num_tokens=num_tokens, embed_dim=embed_dim,
+                                             centering=centering, pad_mode=pad_mode, bias=bias))
         if 2 in symmetry.rep_out and 2 not in symmetry.ignore_rep_out:
             proj_keys.append(2)
-            proj.append(Order2ConvOutputProj(img_size=symmetry.rep_dim, out_chans=symmetry.rep_out[2], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order2ConvOutputProj(img_size=symmetry.rep_dim, out_chans=symmetry.rep_out[2], num_tokens=num_tokens, embed_dim=embed_dim,
+                                             centering=centering, pad_mode=pad_mode, bias=bias))
         if (0, 0) in symmetry.rep_out and (0, 0) not in symmetry.ignore_rep_out:
             proj_keys.append((0, 0))
             proj.append(nn.Linear(embed_dim, symmetry.rep_out[(0, 0)], bias=bias))
         if (1, 0) in symmetry.rep_out and (1, 0) not in symmetry.ignore_rep_out:
             proj_keys.append((1, 0))
-            proj.append(Order1ConvOutputProj(seq_size=symmetry.rep_dim[0], out_chans=symmetry.rep_out[(1, 0)], num_tokens=num_tokens, embed_dim=embed_dim, bias=bias))
+            proj.append(Order1ConvOutputProj(seq_size=symmetry.rep_dim[0], out_chans=symmetry.rep_out[(1, 0)], num_tokens=num_tokens, embed_dim=embed_dim,
+                                             centering=centering, pad_mode=pad_mode, bias=bias))
         for k in symmetry.rep_out:
             assert k in proj_keys and k not in symmetry.ignore_rep_out, f"Missing projection for {k}-order representation"
         self.proj_keys = proj_keys
@@ -77,7 +85,7 @@ def setup_1d(seq_size: int, num_tokens: int):
 
 class Order0ConvInputProj(nn.Module):
     """0D to Tokens"""
-    def __init__(self, in_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, in_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         self.num_tokens = num_tokens
         self.proj = nn.Linear(in_chans, embed_dim, bias=bias)
@@ -93,11 +101,13 @@ class Order0ConvInputProj(nn.Module):
 
 class Order1ConvInputProj(nn.Module):
     """1D to Tokens"""
-    def __init__(self, seq_size: int, in_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, seq_size: int, in_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         patch_size, pad_size = setup_1d(seq_size, num_tokens)
         self.seq_size = seq_size
         self.pad_size = pad_size
+        self.centering = centering
+        self.pad_mode = pad_mode
         self.proj = nn.Conv1d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size, bias=bias)
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
 
@@ -109,7 +119,32 @@ class Order1ConvInputProj(nn.Module):
         B, L, C = x.shape
         assert L == self.seq_size, f"Input sequence length ({L}) doesn't match model ({self.seq_size})."
         x = x.transpose(1, 2)
-        x = F.pad(x, (0, self.pad_size))
+
+        if not self.centering:
+            if self.pad_mode == 'zero':
+                x = F.pad(x, (0, self.pad_size))
+            elif self.pad_mode in ('replicate', 'circular'):
+                x = F.pad(x, (0, self.pad_size), mode=self.pad_mode)
+            elif self.pad_mode == 'reflect':
+                determinism = torch.are_deterministic_algorithms_enabled()
+                torch.use_deterministic_algorithms(False)
+                x = F.pad(x, (0, self.pad_size), mode='reflect')
+                torch.use_deterministic_algorithms(determinism)
+            else:
+                raise ValueError(f"Invalid padding mode: {self.pad_mode}")
+        else:
+            if self.pad_mode == 'zero':
+                x = F.pad(x, (self.pad_size // 2, self.pad_size - (self.pad_size // 2)))
+            elif self.pad_mode in ('replicate', 'circular'):
+                x = F.pad(x, (self.pad_size // 2, self.pad_size - (self.pad_size // 2)), mode=self.pad_mode)
+            elif self.pad_mode == 'reflect':
+                determinism = torch.are_deterministic_algorithms_enabled()
+                torch.use_deterministic_algorithms(False)
+                x = F.pad(x, (self.pad_size // 2, self.pad_size - (self.pad_size // 2)), mode='reflect')
+                torch.use_deterministic_algorithms(determinism)
+            else:
+                raise ValueError(f"Invalid padding mode: {self.pad_mode}")
+
         x = self.proj(x)
         x = x.transpose(1, 2)
         x = self.norm(x)
@@ -118,11 +153,13 @@ class Order1ConvInputProj(nn.Module):
 
 class Order1ConvOutputProj(nn.Module):
     """Tokens to 1D"""
-    def __init__(self, seq_size: int, out_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, seq_size: int, out_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         patch_size, pad_size = setup_1d(seq_size, num_tokens)
         self.num_tokens = num_tokens
         self.pad_size = pad_size
+        if centering:
+            raise NotImplementedError("Centering not supported for 1D output projections")
         self.proj = nn.ConvTranspose1d(embed_dim, out_chans, kernel_size=patch_size, stride=patch_size, bias=bias)
         self.norm = norm_layer(out_chans) if norm_layer else nn.Identity()
 
@@ -165,11 +202,13 @@ def setup_2d(img_size: int, num_tokens: int):
 
 class Order2ConvInputProj(nn.Module):
     """2D to Tokens"""
-    def __init__(self, img_size: int, in_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, img_size: int, in_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         img_size, _, patch_size, pad_size = setup_2d(img_size, num_tokens)
         self.img_size = img_size
         self.pad_size = pad_size
+        self.centering = centering
+        self.pad_mode = pad_mode
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size, bias=bias)
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
 
@@ -178,7 +217,41 @@ class Order2ConvInputProj(nn.Module):
         assert H == self.img_size[0], f"Input image height ({H}) doesn't match model ({self.img_size[0]})."
         assert W == self.img_size[1], f"Input image width ({W}) doesn't match model ({self.img_size[1]})."
         x = x.permute(0, 3, 1, 2)
-        x = F.pad(x, (0, self.pad_size[1], 0, self.pad_size[0]))
+
+        if not self.centering:
+            if self.pad_mode == 'zero':
+                x = F.pad(x, (0, self.pad_size[1], 0, self.pad_size[0]))
+            elif self.pad_mode in ('replicate', 'circular'):
+                x = F.pad(x, (0, self.pad_size[1], 0, self.pad_size[0]), mode=self.pad_mode)
+            elif self.pad_mode == 'reflect':
+                determinism = torch.are_deterministic_algorithms_enabled()
+                torch.use_deterministic_algorithms(False)
+                x = F.pad(x, (0, self.pad_size[1], 0, self.pad_size[0]), mode='reflect')
+                torch.use_deterministic_algorithms(determinism)
+            else:
+                raise ValueError(f"Invalid padding mode: {self.pad_mode}")
+        else:
+            if self.pad_mode == 'zero':
+                x = F.pad(x, (
+                    self.pad_size[1] // 2, self.pad_size[1] - (self.pad_size[1] // 2),
+                    self.pad_size[0] // 2, self.pad_size[0] - (self.pad_size[0] // 2)
+                ))
+            elif self.pad_mode in ('replicate', 'circular'):
+                x = F.pad(x, (
+                    self.pad_size[1] // 2, self.pad_size[1] - (self.pad_size[1] // 2),
+                    self.pad_size[0] // 2, self.pad_size[0] - (self.pad_size[0] // 2)
+                ), mode=self.pad_mode)
+            elif self.pad_mode == 'reflect':
+                determinism = torch.are_deterministic_algorithms_enabled()
+                torch.use_deterministic_algorithms(False)
+                x = F.pad(x, (
+                    self.pad_size[1] // 2, self.pad_size[1] - (self.pad_size[1] // 2),
+                    self.pad_size[0] // 2, self.pad_size[0] - (self.pad_size[0] // 2)
+                ), mode='reflect')
+                torch.use_deterministic_algorithms(determinism)
+            else:
+                raise ValueError(f"Invalid padding mode: {self.pad_mode}")
+
         x = self.proj(x)
         x = x.flatten(2).transpose(1, 2)  # NCHW -> NLC
         x = self.norm(x)
@@ -187,12 +260,14 @@ class Order2ConvInputProj(nn.Module):
 
 class Order2ConvOutputProj(nn.Module):
     """Tokens to 2D"""
-    def __init__(self, img_size: int, out_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, img_size: int, out_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         _, grid_size, patch_size, pad_size = setup_2d(img_size, num_tokens)
         self.grid_size = grid_size
         self.num_tokens = num_tokens
         self.pad_size = pad_size
+        if centering:
+            raise NotImplementedError("Centering not supported for 2D output projections")
         self.proj = nn.ConvTranspose2d(embed_dim, out_chans, kernel_size=patch_size, stride=patch_size, bias=bias)
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
 
@@ -235,11 +310,13 @@ def setup_1x1d(img_size: Tuple[int, int], num_tokens: int):
 
 class Order1x1ConvInputProj(nn.Module):
     """2D (1Dx1D) to Tokens"""
-    def __init__(self, img_size: Tuple[int, int], in_chans: int, num_tokens: int, embed_dim: int, norm_layer: Optional[Callable]=None, bias: bool=True):
+    def __init__(self, img_size: Tuple[int, int], in_chans: int, num_tokens: int, embed_dim: int, centering: bool, pad_mode: str, norm_layer: Optional[Callable]=None, bias: bool=True):
         super().__init__()
         img_size, _, patch_size, pad_size = setup_1x1d(img_size, num_tokens)
         self.img_size = img_size
         self.pad_size = pad_size
+        if centering:
+            raise NotImplementedError("Centering not supported for 1x1D input projections")
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size, bias=bias)
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
 

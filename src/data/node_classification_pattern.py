@@ -25,7 +25,7 @@ class NodeClassificationPATTERN(Symmetry):
         self.rep_dim = 188
         self.rep_in = {1: NODE_NUM_FEAT, 2: 1 + NODE_NUM_FEAT}
         self.rep_out = {2: 2}
-        self.metric_name = ['accuracy', 'trivial_accuracy']
+        self.metric_name = 'accuracy'
         if config.interface == 'prob':
             self.entropy_loss_scale = config.entropy_loss_scale
             self.interface = partial(
@@ -115,9 +115,6 @@ class NodeClassificationPATTERN(Symmetry):
         xs = (edge_output,)
         return xs
 
-    # def criterion(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    #     return nn.functional.cross_entropy(y_hat, y)
-
     def criterion(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Multiclass weighted cross-entropy for imbalanced classification.
         Implementation from LRGB:
@@ -138,11 +135,9 @@ class NodeClassificationPATTERN(Symmetry):
         # weighted cross-entropy
         return nn.CrossEntropyLoss(weight=weight)(y_hat, y)
 
-    def evaluator(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def _eval(self, scores: torch.Tensor, targets: torch.Tensor) -> float:
         """ Implementation from Benchmarking GNNs:
         https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/train/metrics.py"""
-        batch_size = y.size(0)
-        scores, targets = y_hat, y
         S = targets.cpu().numpy()
         C = np.argmax(torch.nn.Softmax(dim=1)(scores.float()).cpu().detach().numpy(), axis=1)
         CM = confusion_matrix(S, C).astype(np.float32)
@@ -153,19 +148,25 @@ class NodeClassificationPATTERN(Symmetry):
         for r in range(nb_classes):
             cluster = np.where(targets==r)[0]
             if cluster.shape[0] != 0:
-                pr_classes[r] = CM[r,r]/ float(cluster.shape[0])
-                if CM[r,r]>0:
+                pr_classes[r] = CM[r,r] / float(cluster.shape[0])
+                if CM[r,r] > 0:
                     nb_non_empty_classes += 1
             else:
                 pr_classes[r] = 0.0
-        acc = 100.* np.sum(pr_classes)/ float(nb_classes)
+        acc = 100. * np.sum(pr_classes) / float(nb_classes)
+        return acc
+
+    def evaluator(self, y_hat: list, y: list) -> dict:
+        """ Implementation from Benchmarking GNNs:
+        https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/train/train_SBMs_node_classification.py
+        Caution: at test time, device-level batch size must be 128 for the evaluation to be consistent with GIN in benchmark:
+        https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/configs/SBMs_node_clustering_GIN_PATTERN_500k.json
+        This can be specified by --test_batch_size 128 in the command line arguments
+        """
+        acc = 0
+        for scores, targets in zip(y_hat, y):
+            acc += self._eval(scores, targets)
         return {
-            'accuracy':{
-                'metric_sum': acc * batch_size,
-                'metric_count': batch_size,
-            },
-            'trivial_accuracy': {
-                'metric_sum': (y_hat.argmax(dim=-1) == y).float().sum(),
-                'metric_count': batch_size,
-            }
+            'metric_sum': acc,
+            'metric_count': len(y_hat),
         }
